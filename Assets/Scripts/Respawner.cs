@@ -5,6 +5,7 @@ public class Respawner : MonoBehaviour
 {
     public static Respawner Instance;
 
+    [Header("Respawn")]
     [SerializeField] private Transform startingPoint;
     [SerializeField] private float respawnDelay = 1f;
 
@@ -12,6 +13,12 @@ public class Respawner : MonoBehaviour
 
     private void Awake()
     {
+        // Basic singleton pattern
+        if (Instance != null && Instance != this)
+        {
+            return;
+        }
+
         Instance = this;
     }
 
@@ -22,11 +29,14 @@ public class Respawner : MonoBehaviour
 
     public void SetCheckpoint(Transform point)
     {
+        if (point == null) return;
         currentRespawnPoint = point;
     }
 
     public void RespawnPlayer(PlayerMovement player)
     {
+        if (player == null) return;
+        StopAllCoroutines();
         StartCoroutine(RespawnRoutine(player));
     }
 
@@ -34,13 +44,20 @@ public class Respawner : MonoBehaviour
     {
         yield return new WaitForSeconds(respawnDelay);
 
-        player.transform.position = currentRespawnPoint.position;
+        // Teleport player safely (use rb if you want)
+        player.transform.SetPositionAndRotation(currentRespawnPoint.position, currentRespawnPoint.rotation);
         player.Revive();
 
-        // Reset all enemies
+        // Reset ONLY enemies (by layer)
         foreach (var enemy in FindObjectsByType<FollowTarget>(FindObjectsSortMode.None))
         {
+            if (enemy == null) continue;
+
+            if (enemy.gameObject.layer != LayerMask.NameToLayer("Enemy"))
+                continue;
+
             enemy.ResetAgent();
+            enemy.RespawnBehindPlayer(player.transform);
         }
     }
 }

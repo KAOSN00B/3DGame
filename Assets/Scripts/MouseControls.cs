@@ -22,11 +22,15 @@ public class MouseControls : MonoBehaviour
         {
             Ray ray = cam.ScreenPointToRay(Mouse.current.position.value);
 
-            if (Physics.Raycast(ray, out RaycastHit hit, 50))
+            Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+
+            if (groundPlane.Raycast(ray, out float distance))
             {
+                Vector3 clickPoint = ray.GetPoint(distance);
+
                 if (player.UseItem())
                 {
-                    Instantiate(objectToSpawn, hit.point, Quaternion.identity);
+                    Instantiate(objectToSpawn, clickPoint, Quaternion.identity);
                 }
             }
         }

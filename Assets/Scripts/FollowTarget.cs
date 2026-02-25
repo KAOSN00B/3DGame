@@ -7,6 +7,8 @@ public class FollowTarget : MonoBehaviour
     [SerializeField] private NavMeshAgent agent;
     [SerializeField] private Transform[] waypoints;
     [SerializeField] private Animator animator;
+    [SerializeField] private bool alwaysFollowPlayer = false;
+    [SerializeField] private bool isInvincible = false;
 
     [Header("Settings")]
     [SerializeField] private float maxChaseDistance = 10f;
@@ -14,6 +16,7 @@ public class FollowTarget : MonoBehaviour
     [SerializeField] private float destroyDelay = 3.0f;
 
     private int curWayIndex = 0;
+    private const float respawnDistance = 7f;
     private Transform hostileTarget;
 
     private AIState state = AIState.Wander;
@@ -121,7 +124,7 @@ public class FollowTarget : MonoBehaviour
 
         float distance = GetVectorDistanceWithoutY(transform.position, hostileTarget.position);
 
-        if (distance >= maxChaseDistance)
+        if (!alwaysFollowPlayer && distance >= maxChaseDistance)
         {
             SwitchToIdle();
         }
@@ -151,7 +154,7 @@ public class FollowTarget : MonoBehaviour
     {
         if (state == AIState.Idle)
         {
-            animator.SetInteger("State", 0); 
+            animator.SetInteger("State", 0);
             return;
         }
 
@@ -159,15 +162,15 @@ public class FollowTarget : MonoBehaviour
 
         if (speed < 0.1f)
         {
-            animator.SetInteger("State", 0); 
+            animator.SetInteger("State", 0);
         }
         else if (state == AIState.Chase)
         {
-            animator.SetInteger("State", 2); 
+            animator.SetInteger("State", 2);
         }
         else
         {
-            animator.SetInteger("State", 1); 
+            animator.SetInteger("State", 1);
         }
     }
 
@@ -179,7 +182,9 @@ public class FollowTarget : MonoBehaviour
 
     public void Die()
     {
+        if (isInvincible) return;
         if (isDead) return;
+
         isDead = true;
 
         if (agent.enabled && agent.isOnNavMesh)
@@ -189,14 +194,7 @@ public class FollowTarget : MonoBehaviour
 
         animator.SetTrigger("DeathTrigger");
 
-
-        foreach (var param in animator.parameters)
-        {
-            Debug.Log(param.name);
-        }
-
-
-        Destroy(gameObject, 3f);
+        Destroy(gameObject, destroyDelay);
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -218,6 +216,26 @@ public class FollowTarget : MonoBehaviour
     {
         agent.ResetPath();
         agent.Warp(transform.position);
+    }
+
+    public void RespawnBehindPlayer(Transform player, float distance = respawnDistance)
+    {
+        if (!alwaysFollowPlayer) return;
+        if (player == null) return;
+
+        Vector3 spawnPos = player.position - player.forward * distance;
+
+        if (agent.enabled && agent.isOnNavMesh)
+        {
+            agent.Warp(spawnPos); 
+        }
+        else
+        {
+            transform.position = spawnPos;
+        }
+
+        hostileTarget = player;
+        state = AIState.Chase;
     }
 
 

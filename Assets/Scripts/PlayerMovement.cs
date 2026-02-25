@@ -14,7 +14,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private TMP_Text itemText;
-    [SerializeField] private float deathDelay = 3.0f;
+
 
 
     private Rigidbody rb;
@@ -22,8 +22,9 @@ public class PlayerMovement : MonoBehaviour
     private int itemCount;
     private bool isDead = false;
     public bool isDeadPublic => isDead;
+    public Transform Visual => visual;
 
-    
+
 
     private void Awake()
     {
@@ -156,6 +157,8 @@ public class PlayerMovement : MonoBehaviour
 
 
     }
+
+
 
 
 

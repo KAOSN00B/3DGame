@@ -8,6 +8,7 @@ public class Bomb : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void OnCollisionEnter(Collision collision)
     {
+        // If it hit an enemy, kill it
         if (collision.gameObject.CompareTag("Enemy"))
         {
             FollowTarget enemy = collision.gameObject.GetComponent<FollowTarget>();
@@ -16,14 +17,10 @@ public class Bomb : MonoBehaviour
             {
                 enemy.Die();
             }
-
-            Explode();
         }
 
-        else if (collision.gameObject.CompareTag("Ground"))
-        {
-            Explode();
-        }
+        // Always explode no matter what we hit
+        Explode();
     }
 
     private void Explode()
